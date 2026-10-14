@@ -88,7 +88,7 @@ lib/
     rate/               decorator: executors, mock data source, 1 BLoC
     receipt/            template method: UI models only, no data layer
     cart/               null object: discount, no-discount, summary card
-    remote_config/      registry: descriptors, mock data source, 1 BLoC
+    remote_config/      registry: descriptors, mock data source, one generic BLoC per config type
 test/                   unit tests, BLoC tests, parity tests, pattern tests
 ```
 

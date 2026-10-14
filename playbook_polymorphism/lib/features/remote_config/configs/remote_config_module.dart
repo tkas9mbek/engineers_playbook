@@ -8,7 +8,6 @@ import 'package:playbook_polymorphism/features/remote_config/domain/remote_confi
 import 'package:playbook_polymorphism/features/remote_config/model/remote_limits_config.dart';
 import 'package:playbook_polymorphism/features/remote_config/model/remote_maintenance_config.dart';
 import 'package:playbook_polymorphism/features/remote_config/model/remote_support_config.dart';
-import 'package:playbook_polymorphism/features/remote_config/ui/bloc/remote_config_details_bloc.dart';
 import 'package:playbook_toolkit/data/mock/mock_network_behavior.dart';
 import 'package:playbook_toolkit/data/repository_executor/raw_repository_executor.dart';
 import 'package:playbook_toolkit/data/repository_executor/repository_executor_extensions.dart';
@@ -16,7 +15,6 @@ import 'package:playbook_toolkit/data/repository_executor/repository_executor_ex
 class RemoteConfigModule extends AppModule {
   @override
   List<Unregister> get unregisterCallbacks => [
-    unregisterIfRegistered<RemoteConfigDetailsBloc>,
     unregisterIfRegistered<RemoteConfigRepository>,
     unregisterIfRegistered<RemoteConfigDataSource>,
     unregisterIfRegistered<RemoteConfigRegistry>,
@@ -61,9 +59,6 @@ class RemoteConfigModule extends AppModule {
           const RawRepositoryExecutor().withErrorHandling(),
           getIt<RemoteConfigDataSource>(),
         ),
-      )
-      ..registerFactory(
-        () => RemoteConfigDetailsBloc(getIt<RemoteConfigRepository>()),
       );
   }
 }

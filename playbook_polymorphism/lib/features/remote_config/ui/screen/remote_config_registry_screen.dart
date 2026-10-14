@@ -2,7 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playbook_polymorphism/core/global/global_variables.dart';
-import 'package:playbook_polymorphism/features/remote_config/ui/bloc/remote_config_details_bloc.dart';
+import 'package:playbook_polymorphism/features/remote_config/domain/remote_config_repository.dart';
+import 'package:playbook_polymorphism/features/remote_config/model/remote_config_entry.dart';
+import 'package:playbook_polymorphism/features/remote_config/model/remote_limits_config.dart';
+import 'package:playbook_polymorphism/features/remote_config/model/remote_maintenance_config.dart';
+import 'package:playbook_polymorphism/features/remote_config/model/remote_support_config.dart';
+import 'package:playbook_polymorphism/features/remote_config/ui/bloc/remote_config_entry_bloc.dart';
 import 'package:playbook_polymorphism/features/remote_config/ui/widget/remote_config_panel.dart';
 import 'package:playbook_uikit/widgets/article/pattern_layout.dart';
 
@@ -12,10 +17,18 @@ class RemoteConfigRegistryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          getIt<RemoteConfigDetailsBloc>()
-            ..add(const RemoteConfigDetailsEvent.requested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => _createEntryBloc<RemoteMaintenanceConfig>(),
+        ),
+        BlocProvider(
+          create: (context) => _createEntryBloc<RemoteSupportConfig>(),
+        ),
+        BlocProvider(
+          create: (context) => _createEntryBloc<RemoteLimitsConfig>(),
+        ),
+      ],
       child: const PatternLayout(
         title: 'Registry',
         intro:
@@ -35,3 +48,7 @@ class RemoteConfigRegistryScreen extends StatelessWidget {
     );
   }
 }
+
+RemoteConfigEntryBloc<T> _createEntryBloc<T extends RemoteConfigEntry>() =>
+    RemoteConfigEntryBloc<T>(getIt<RemoteConfigRepository>())
+      ..add(const RemoteConfigEntryEvent.requested());

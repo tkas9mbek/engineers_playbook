@@ -7,7 +7,7 @@ import 'package:playbook_polymorphism/features/remote_config/domain/remote_confi
 import 'package:playbook_polymorphism/features/remote_config/model/remote_limits_config.dart';
 import 'package:playbook_polymorphism/features/remote_config/model/remote_maintenance_config.dart';
 import 'package:playbook_polymorphism/features/remote_config/model/remote_support_config.dart';
-import 'package:playbook_polymorphism/features/remote_config/ui/bloc/remote_config_details_bloc.dart';
+import 'package:playbook_polymorphism/features/remote_config/ui/bloc/remote_config_entry_bloc.dart';
 import 'package:playbook_polymorphism/features/remote_config/ui/screen/remote_config_registry_screen.dart';
 import 'package:playbook_toolkit/data/mock/mock_network_behavior.dart';
 import 'package:playbook_toolkit/data/repository_executor/raw_repository_executor.dart';
@@ -69,26 +69,25 @@ void main() {
     expect(limits, _limitsDefault);
   });
 
-  test('RemoteConfigDetailsBloc loads all three configs', () async {
-    final bloc = RemoteConfigDetailsBloc(_repository(_registry()))
-      ..add(const RemoteConfigDetailsEvent.requested());
+  test('RemoteConfigEntryBloc loads one config by its type', () async {
+    final bloc = RemoteConfigEntryBloc<RemoteLimitsConfig>(
+      _repository(_registry()),
+    )..add(const RemoteConfigEntryEvent.requested());
 
     await expectLater(
       bloc.stream,
       emitsInOrder([
-        const RemoteConfigDetailsState.loading(),
-        isA<SuccessRemoteConfigDetailsState>()
-            .having((state) => state.maintenance.enabled, 'enabled', true)
-            .having((state) => state.limits, 'limits', _limitsDefault),
+        const RemoteConfigEntryState<RemoteLimitsConfig>.loading(),
+        const RemoteConfigEntryState<RemoteLimitsConfig>.success(
+          _limitsDefault,
+        ),
       ]),
     );
   });
 
   group('screen', () {
     setUp(() {
-      getIt.registerFactory(
-        () => RemoteConfigDetailsBloc(_repository(_registry())),
-      );
+      getIt.registerFactory(() => _repository(_registry()));
     });
 
     tearDown(getIt.reset);
