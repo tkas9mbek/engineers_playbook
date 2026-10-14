@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+import 'package:playbook_uikit/theme/theme_provider.dart';
+import 'package:playbook_uikit/widgets/button/app_elevated_button.dart';
+import 'package:playbook_uikit/widgets/dialogs/bottom_sheet_screen.dart';
+
+/// A bottom sheet asking the user to confirm an action, showing a [title],
+/// optional descriptive [text], and a full-width confirm button.
+/// Pops with `true` when confirmed; dismissing otherwise yields `null`.
+class ConfirmationBottomSheet extends StatelessWidget {
+  const ConfirmationBottomSheet({
+    required this.title,
+    required this.buttonText,
+    this.showCloseButton = true,
+    this.text,
+    super.key,
+  });
+
+  final String title;
+  final String? text;
+  final String buttonText;
+  final bool showCloseButton;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ThemeProvider.of(context).theme;
+    final textStyles = ThemeProvider.of(context).textStyles;
+
+    return BottomSheetScreen(
+      title: title,
+      showCloseButton: showCloseButton,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (text != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              text!,
+              style: textStyles.regularBody14.copyWith(
+                color: theme.textSecondary,
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          AppElevatedButton.big(
+            context: context,
+            text: buttonText,
+            width: double.infinity,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+  }
+}
