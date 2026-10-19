@@ -1,0 +1,221 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:playbook_toolkit/data/exceptions/app_exception.dart';
+import 'package:playbook_uikit/theme/app_radii.dart';
+import 'package:playbook_uikit/theme/theme_provider.dart';
+import 'package:playbook_uikit/utils/extensions/app_exception_ui_extension.dart';
+import 'package:playbook_uikit/widgets/misc/app_tap_area.dart';
+
+enum _NotificationSnackBarStyle { success, error, information }
+
+/// Top-of-screen flat notification bar with a leading icon and message:
+/// success/error are solid status fills, information is a bordered surface.
+///
+/// Create via [NotificationSnackBar.success], [NotificationSnackBar.error] or
+/// [NotificationSnackBar.information] — each has a default icon that can be
+/// overridden via `icon` — and present it with [show].
+class NotificationSnackBar extends StatelessWidget {
+  const NotificationSnackBar._(
+    this._style, {
+    required this.text,
+    required this.icon,
+    super.key,
+  });
+
+  /// Green bar for successful operations.
+  factory NotificationSnackBar.success({
+    required String text,
+    IconData icon = Icons.check,
+    Key? key,
+  }) => NotificationSnackBar._(
+    _NotificationSnackBarStyle.success,
+    text: text,
+    icon: icon,
+    key: key,
+  );
+
+  /// Red bar for failures.
+  factory NotificationSnackBar.error({
+    required String text,
+    IconData icon = Icons.close,
+    Key? key,
+  }) => NotificationSnackBar._(
+    _NotificationSnackBarStyle.error,
+    text: text,
+    icon: icon,
+    key: key,
+  );
+
+  /// Bordered surface bar for neutral information.
+  factory NotificationSnackBar.information({
+    required String text,
+    IconData icon = Icons.notifications_none,
+    Key? key,
+  }) => NotificationSnackBar._(
+    _NotificationSnackBarStyle.information,
+    text: text,
+    icon: icon,
+    key: key,
+  );
+
+  final String text;
+  final IconData icon;
+  final _NotificationSnackBarStyle _style;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ThemeProvider.of(context).theme;
+    final textStyles = ThemeProvider.of(context).textStyles;
+    final (fill, outline, foreground, iconColor) = switch (_style) {
+      _NotificationSnackBarStyle.success => (
+        theme.success,
+        theme.success,
+        theme.onStatus,
+        theme.onStatus,
+      ),
+      _NotificationSnackBarStyle.error => (
+        theme.error,
+        theme.error,
+        theme.onStatus,
+        theme.onStatus,
+      ),
+      _NotificationSnackBarStyle.information => (
+        theme.surface,
+        theme.borderStrong,
+        theme.textPrimary,
+        theme.accent,
+      ),
+    };
+
+    // Transparent Material only supplies a text theme to the overlay entry.
+    return Material(
+      type: MaterialType.transparency,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          border: Border.all(color: outline),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  text,
+                  style: textStyles.regularBody14.copyWith(color: foreground),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shows a [NotificationSnackBar.error] bar with the exception's
+  /// snackbar message.
+  static void showExceptionMessage(
+    BuildContext context, {
+    required AppException exception,
+  }) => show(
+    context,
+    NotificationSnackBar.error(text: exception.snackbarMessage),
+  );
+
+  /// Inserts [child] as a self-managed overlay entry that slides in from the
+  /// top, auto-dismisses, and can be dismissed early by tapping.
+  static void show(BuildContext context, NotificationSnackBar child) {
+    final overlay = Overlay.of(context);
+    late final OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) =>
+          _NotificationOverlay(onDismissed: entry.remove, child: child),
+    );
+
+    overlay.insert(entry);
+  }
+}
+
+/// Slides the notification in from the top, auto-dismisses, and removes its
+/// overlay entry. Tapping dismisses early.
+class _NotificationOverlay extends StatefulWidget {
+  const _NotificationOverlay({required this.child, required this.onDismissed});
+
+  final Widget child;
+  final VoidCallback onDismissed;
+
+  @override
+  State<_NotificationOverlay> createState() => _NotificationOverlayState();
+}
+
+class _NotificationOverlayState extends State<_NotificationOverlay>
+    with SingleTickerProviderStateMixin {
+  static const _visibleDuration = Duration(seconds: 2);
+
+  late final AnimationController _controller;
+  late final Animation<Offset> _offset;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _offset = Tween<Offset>(
+      begin: const Offset(0, -1.5),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    unawaited(_controller.forward());
+    _timer = Timer(_visibleDuration, dismiss);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+
+    super.dispose();
+  }
+
+  void dismiss() {
+    _timer?.cancel();
+
+    if (!mounted) {
+      return;
+    }
+
+    unawaited(_hide());
+  }
+
+  Future<void> _hide() async {
+    await _controller.reverse();
+    widget.onDismissed();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SlideTransition(
+            position: _offset,
+            child: AppTapArea(onTap: dismiss, child: widget.child),
+          ),
+        ),
+      ),
+    );
+  }
+}

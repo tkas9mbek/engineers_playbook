@@ -1,0 +1,12 @@
+name: playbook_workspace
+description: "Workspace root for the Engineers’ Playbook Dart/Flutter packages."
+
+publish_to: 'none'
+
+environment:
+  sdk: ^3.12.0
+
+workspace:
+  - helpers/playbook_toolkit
+  - helpers/playbook_uikit
+  - playbook_polymorphism

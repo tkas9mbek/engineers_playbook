@@ -1,0 +1,33 @@
+.DS_Store
+*.iml
+.idea/
+.vscode/
+
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+coverage/
+
+# FVM
+.fvm/
+
+# Generated platform files
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Pods/
+**/android/local.properties
+**/android/.gradle/
+**/android/**/GeneratedPluginRegistrant.java
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Local-only files (personal instructions, settings, article drafts)
+docs/
+articles/
+*.local.md
+*.local.json
+.claude/settings.local.json
+.env
